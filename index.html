@@ -785,11 +785,11 @@
 
     <script>
         // ==========================================
-        //  JSONBin.io の設定（ここに鍵を入れます）
+        //  JSONBin.io の設定（マスターキー設定済み）
         // ==========================================
         const JSONBIN_MASTER_KEY = "$2a$10$06NXGmHf6mVSNKe.raYSMuTHImq0NuLkVILheGiRAvaB.vB7gE0KG"; 
         
-        // 初めて使うときに自動作成される専用のストレージID（空欄のままでOKです。動的に自動生成されます）
+        // 初めて使うときに自動作成される専用のストレージID（2回目以降は自動で記憶されます）
         let JSONBIN_BIN_ID = localStorage.getItem('my_recipe_bin_id') || "";
 
         const defaultRecipes = [
@@ -855,12 +855,6 @@
         let selectedCategory = 'すべて';
 
         window.onload = async function() {
-            if (JSONBIN_MASTER_KEY === "$2a$10$06NXGmHf6mVSNKe.raYSMuTHImq0NuLkVILheGiRAvaB.vB7gE0KG") {
-                alert("エラー：コード内の `JSONBIN_MASTER_KEY` にJSONBin.ioのMaster Keyを設定してください！");
-                hideLoading();
-                return;
-            }
-
             await loadRecipesFromCloud();
             filterAndRenderRecipes();
             hideLoading();
@@ -884,10 +878,8 @@
         async function loadRecipesFromCloud() {
             try {
                 if (!JSONBIN_BIN_ID) {
-                    // 初回：新規Bin（データ保管箱）を自動作成する
                     await createNewBinInCloud(defaultRecipes);
                 } else {
-                    // 2回目以降：既存のBinからデータを取得
                     const res = await fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}/latest`, {
                         headers: { 'X-Master-Key': JSONBIN_MASTER_KEY }
                     });
@@ -901,7 +893,7 @@
             }
         }
 
-        // クラウドに新規Binを作る関数
+        // クラウドに新規Binを作る関数（初回のみ自動実行）
         async function createNewBinInCloud(initialData) {
             try {
                 const res = await fetch('https://api.jsonbin.io/v3/b', {
