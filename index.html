@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>my favorite recipes</title>
-    <link href="https://fonts.googleapis.com/css2?family=Sacramento&family=Zen+Maru+Gothic:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
         * {
             box-sizing: border-box;
@@ -32,28 +32,70 @@
         }
 
         header {
+            position: relative;
             text-align: center;
-            padding: 30px 0 20px;
+            padding: 16px 0 16px;
+        }
+
+        /* 右上の「＋」追加ボタン */
+        .header-add-btn {
+            position: absolute;
+            right: 0;
+            top: 20px;
+            width: 38px;
+            height: 38px;
+            background-color: #b07d62;
+            color: #fff;
+            border: none;
+            border-radius: 50%;
+            font-size: 1.3rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(176, 125, 98, 0.2);
+            transition: background-color 0.2s, transform 0.2s;
+            z-index: 10;
+        }
+
+        .header-add-btn:active {
+            transform: scale(0.92);
+            background-color: #9c6c53;
         }
 
         .site-title {
-            font-family: 'Sacramento', cursive;
-            font-size: 3.5rem;
-            font-weight: 400;
+            font-size: 1.8rem;
+            font-weight: 700;
             color: #b07d62;
-            margin-bottom: 12px;
-            letter-spacing: 1px;
+            margin-bottom: 4px;
+            letter-spacing: 0.5px;
+            padding-right: 40px; /* ＋ボタンと重ならないため */
+            padding-left: 40px;
         }
 
+        /* サブタイトル */
+        .site-subtitle {
+            font-size: 0.85rem;
+            color: #8c7a6b;
+            margin-bottom: 16px;
+            letter-spacing: 0.5px;
+            padding-right: 40px;
+            padding-left: 40px;
+        }
+
+        /* 検索ボックス周り */
         .search-box {
             position: relative;
             max-width: 100%;
-            margin: 0 auto 20px;
+            margin: 0 auto 16px;
+            display: flex;
+            align-items: center;
         }
 
         .search-input {
             width: 100%;
-            padding: 12px 16px 12px 40px;
+            padding: 12px 45px 12px 20px; /* 右側のバツボタンと重ならないよう余白調整 */
             background-color: #fff;
             border: 1.5px solid #e3d5ca;
             border-radius: 30px;
@@ -62,62 +104,91 @@
             outline: none;
             box-shadow: 0 2px 6px rgba(92, 76, 62, 0.04);
             font-family: 'Zen Maru Gothic', sans-serif;
+            transition: border-color 0.2s;
+        }
+
+        .search-input:focus {
+            border-color: #b07d62;
         }
 
         .search-input::placeholder {
             color: #bfa89b;
         }
 
-        .search-icon {
+        /* 右側のクリア（バツ）ボタン */
+        .clear-search-btn {
             position: absolute;
-            left: 14px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #bfa89b;
-            font-size: 1.1rem;
+            right: 12px;
+            background-color: #e8dcc4;
+            border: none;
+            color: #735e4c;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            font-size: 0.75rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: none; /* 初期状態は非表示 */
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.2s;
         }
 
+        .clear-search-btn:hover {
+            background-color: #d4c2b4;
+        }
+
+        .clear-search-btn.show {
+            display: flex; /* 入力がある時に表示 */
+        }
+
+        /* カテゴリーフィルター（文字リンク） */
+        .category-filter-scroll {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding-bottom: 8px;
+            margin-bottom: 20px;
+            scrollbar-width: none;
+        }
+        .category-filter-scroll::-webkit-scrollbar {
+            display: none;
+        }
+        .cat-filter-btn {
+            background-color: #fff;
+            border: 1px solid #e3d5ca;
+            color: #8c7a6b;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            cursor: pointer;
+            white-space: nowrap;
+            font-family: 'Zen Maru Gothic', sans-serif;
+            transition: all 0.2s;
+        }
+        .cat-filter-btn.active {
+            background-color: #b07d62;
+            color: #fff;
+            border-color: #b07d62;
+        }
+
+        /* レシピ追加アコーディオン（＋ボタンで開閉） */
         .post-box {
             background-color: #ffffff;
             border-radius: 16px;
-            padding: 20px;
+            padding: 0 20px;
             box-shadow: 0 4px 12px rgba(176, 125, 98, 0.08);
             margin-bottom: 24px;
             border: 1.5px dashed #e3d5ca;
-        }
-
-        .post-box-title {
-            font-size: 1rem;
-            font-weight: 700;
-            color: #b07d62;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            cursor: pointer;
-            user-select: none;
-        }
-
-        .post-box-title .toggle-icon {
-            font-size: 1.1rem;
-            transition: transform 0.3s ease;
-        }
-
-        .post-content-inner {
             max-height: 0;
             overflow: hidden;
-            transition: max-height 0.4s ease, opacity 0.3s ease, margin-top 0.3s ease;
-            opacity: 0;
-            margin-top: 0;
+            transition: max-height 0.4s ease, padding 0.3s ease;
         }
 
-        .post-box.open .post-content-inner {
+        .post-box.open {
+            padding: 20px;
             max-height: 4000px;
-            opacity: 1;
-            margin-top: 16px;
-        }
-
-        .post-box.open .toggle-icon {
-            transform: rotate(180deg);
         }
 
         .post-form {
@@ -328,21 +399,24 @@
             transform: scale(0.98);
         }
 
+        /* レシピ一覧・カードデザイン（1列） */
         .recipe-grid {
             display: flex;
             flex-direction: column;
-            gap: 20px;
+            gap: 12px;
         }
 
         .recipe-card {
             background-color: #ffffff;
-            border-radius: 16px;
+            border-radius: 14px;
             overflow: hidden;
-            box-shadow: 0 4px 12px rgba(176, 125, 98, 0.08);
+            box-shadow: 0 2px 8px rgba(176, 125, 98, 0.06);
             cursor: pointer;
             transition: transform 0.2s ease, box-shadow 0.2s ease;
             display: flex;
             flex-direction: row;
+            align-items: center;
+            border: 1px solid #f0e6df;
         }
 
         .recipe-card:active {
@@ -350,13 +424,13 @@
         }
 
         .card-img-area {
-            width: 120px;
-            min-height: 120px;
+            width: 90px;
+            height: 90px;
             background-color: #f4eee9;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 2.8rem;
+            font-size: 2rem;
             flex-shrink: 0;
             position: relative;
             overflow: hidden;
@@ -372,35 +446,29 @@
         }
 
         .card-content {
-            padding: 16px;
+            padding: 12px 16px;
             display: flex;
             flex-direction: column;
             justify-content: center;
             flex-grow: 1;
+            min-width: 0;
         }
 
         .card-tag {
             display: inline-block;
-            font-size: 0.75rem;
-            background-color: #f4eade;
+            font-size: 0.7rem;
             color: #b07d62;
-            padding: 2px 8px;
-            border-radius: 4px;
-            width: fit-content;
-            margin-bottom: 6px;
+            margin-bottom: 2px;
             font-weight: 500;
         }
 
         .card-title {
-            font-size: 1.05rem;
+            font-size: 1rem;
             font-weight: 700;
             color: #4a3b2c;
-            margin-bottom: 4px;
-        }
-
-        .card-desc {
-            font-size: 0.85rem;
-            color: #8c7a6b;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .back-btn {
@@ -585,70 +653,82 @@
 
     <div id="home-page" class="page active">
         <header>
+            <!-- 右上の「＋」追加ボタン -->
+            <button type="button" class="header-add-btn" onclick="togglePostBox()">+</button>
             <h1 class="site-title">my favorite recipes</h1>
+            <p class="site-subtitle">きょうのごはん、なににする？</p>
             
             <div class="search-box">
-                <span class="search-icon">🔍</span>
-                <input type="text" class="search-input" id="search-input" placeholder="料理名や材料で検索..." oninput="filterRecipes()">
+                <input type="text" class="search-input" id="search-input" placeholder="料理名や材料で検索..." oninput="handleSearchInput()">
+                
+                <!-- 入力内容を一括消去するバツボタン -->
+                <button type="button" class="clear-search-btn" id="clear-search-btn" onclick="clearSearchInput()" title="クリア">✕</button>
+            </div>
+            
+            <!-- カテゴリーフィルター（文字リンク） -->
+            <div class="category-filter-scroll" id="category-filter-container">
+                <button type="button" class="cat-filter-btn active" onclick="setCategoryFilter('すべて', this)">すべて</button>
+                <button type="button" class="cat-filter-btn" onclick="setCategoryFilter('お肉料理', this)">お肉料理</button>
+                <button type="button" class="cat-filter-btn" onclick="setCategoryFilter('魚料理', this)">魚料理</button>
+                <button type="button" class="cat-filter-btn" onclick="setCategoryFilter('野菜料理', this)">野菜料理</button>
+                <button type="button" class="cat-filter-btn" onclick="setCategoryFilter('副菜', this)">副菜</button>
+                <button type="button" class="cat-filter-btn" onclick="setCategoryFilter('ごはん', this)">ごはん</button>
+                <button type="button" class="cat-filter-btn" onclick="setCategoryFilter('麺', this)">麺</button>
+                <button type="button" class="cat-filter-btn" onclick="setCategoryFilter('スープ', this)">スープ</button>
+                <button type="button" class="cat-filter-btn" onclick="setCategoryFilter('おやつ', this)">おやつ</button>
             </div>
         </header>
 
+        <!-- レシピ追加フォーム（＋ボタンで開閉） -->
         <div class="post-box" id="post-box">
-            <div class="post-box-title" onclick="togglePostBox()">
-                <span id="form-box-title-text">✨ 新しいレシピをメモする</span>
-                <span class="toggle-icon">▼</span>
-            </div>
-            
-            <div class="post-content-inner">
-                <div class="post-form">
-                    <input type="hidden" id="edit-index" value="">
-                    
-                    <div class="bulk-paste-box" id="bulk-paste-box">
-                        <div class="bulk-paste-header" onclick="toggleBulkBox()">
-                            <span>🪄 AIなどでレシピを一括読み込みする</span>
-                            <span class="bulk-toggle-icon">▼</span>
-                        </div>
-                        <div class="bulk-paste-content">
-                            <textarea class="post-textarea" id="bulk-input" placeholder="ここにレシピの文章を丸ごと貼り付けて、「一発反映」を押すと自動でフォームに振り分けられます！"></textarea>
-                            
-                            <a href="#" id="chatgpt-link" class="chatgpt-link-btn" target="_blank" onclick="openChatGPTWithPrompt()">💬 ChatGPTを開いてプロンプトを自動入力する</a>
-                            
-                            <button type="button" class="small-action-btn" onclick="parseBulkRecipe()">✨ フォームに一発反映する</button>
-                        </div>
+            <div class="post-form">
+                <input type="hidden" id="edit-index" value="">
+                
+                <div class="bulk-paste-box" id="bulk-paste-box">
+                    <div class="bulk-paste-header" onclick="toggleBulkBox()">
+                        <span>🪄 AIなどでレシピを一括読み込みする</span>
+                        <span class="bulk-toggle-icon">▼</span>
                     </div>
-
-                    <div class="form-section-title">基本情報</div>
-                    <input type="text" class="post-input" id="new-title" placeholder="レシピのタイトル（例：特製ハンバーグ）">
-                    <input type="text" class="post-input" id="new-servings" placeholder="人数・分量（例：2人分）">
-                    <input type="text" class="post-input" id="new-tag" placeholder="カテゴリー（例：お肉料理、おやつ）">
-                    <textarea class="post-textarea" id="new-desc" placeholder="簡単な説明やコメント..."></textarea>
-                    
-                    <label class="file-upload-label" for="new-image">
-                        📷 写真を選択する（任意）
-                    </label>
-                    <input type="file" id="new-image" class="file-upload-input" accept="image/*" onchange="updateFileName(this)">
-                    <div class="file-name-display" id="file-name-display">選択されていません</div>
-
-                    <div class="form-section-title">材料</div>
-                    <div id="ingredients-container">
-                        <div class="dynamic-row ingredient-row">
-                            <input type="text" class="post-input ing-name" placeholder="材料名（例：豚肉）">
-                            <input type="text" class="post-input ing-amount" placeholder="分量（例：200g）">
-                        </div>
+                    <div class="bulk-paste-content">
+                        <textarea class="post-textarea" id="bulk-input" placeholder="ここにレシピの文章を丸ごと貼り付けて、「一発反映」を押すと自動でフォームに振り分けられます！"></textarea>
+                        
+                        <a href="#" id="chatgpt-link" class="chatgpt-link-btn" target="_blank" onclick="openChatGPTWithPrompt()">💬 ChatGPTを開いてプロンプトを自動入力する</a>
+                        
+                        <button type="button" class="small-action-btn" onclick="parseBulkRecipe()">✨ フォームに一発反映する</button>
                     </div>
-                    <button type="button" class="small-add-btn" onclick="addIngredientRow()">＋ 材料を追加</button>
-
-                    <div class="form-section-title">作り方手順</div>
-                    <div id="steps-container">
-                        <div class="dynamic-row step-row">
-                            <input type="text" class="post-input step-text-input" placeholder="手順（例：一口大に切る）">
-                        </div>
-                    </div>
-                    <button type="button" class="small-add-btn" onclick="addStepRow()">＋ 手順を追加</button>
-
-                    <button class="post-btn" id="submit-btn" onclick="saveRecipe()">リストに追加する</button>
-                    <button class="post-btn" id="cancel-edit-btn" onclick="resetForm()" style="background-color: #e3d5ca; color: #5c4c3e; display: none; margin-top: 6px;">編集をやめる</button>
                 </div>
+
+                <div class="form-section-title" id="form-main-heading">新しいレシピを追加</div>
+                <input type="text" class="post-input" id="new-title" placeholder="レシピのタイトル（例：特製ハンバーグ）">
+                <input type="text" class="post-input" id="new-servings" placeholder="人数・分量（例：2人分）">
+                <input type="text" class="post-input" id="new-tag" placeholder="カテゴリー（例：お肉料理、おやつ）">
+                <textarea class="post-textarea" id="new-desc" placeholder="簡単な説明やコメント..."></textarea>
+                
+                <label class="file-upload-label" for="new-image">
+                    📷 写真を選択する（任意）
+                </label>
+                <input type="file" id="new-image" class="file-upload-input" accept="image/*" onchange="updateFileName(this)">
+                <div class="file-name-display" id="file-name-display">選択されていません</div>
+
+                <div class="form-section-title">材料</div>
+                <div id="ingredients-container">
+                    <div class="dynamic-row ingredient-row">
+                        <input type="text" class="post-input ing-name" placeholder="材料名（例：豚肉）">
+                        <input type="text" class="post-input ing-amount" placeholder="分量（例：200g）">
+                    </div>
+                </div>
+                <button type="button" class="small-add-btn" onclick="addIngredientRow()">＋ 材料を追加</button>
+
+                <div class="form-section-title">作り方手順</div>
+                <div id="steps-container">
+                    <div class="dynamic-row step-row">
+                        <input type="text" class="post-input step-text-input" placeholder="手順（例：一口大に切る）">
+                    </div>
+                </div>
+                <button type="button" class="small-add-btn" onclick="addStepRow()">＋ 手順を追加</button>
+
+                <button class="post-btn" id="submit-btn" onclick="saveRecipe()">リストに追加する</button>
+                <button class="post-btn" id="cancel-edit-btn" onclick="resetForm()" style="background-color: #e3d5ca; color: #5c4c3e; display: none; margin-top: 6px;">編集をやめる</button>
             </div>
         </div>
 
@@ -656,6 +736,7 @@
         </main>
     </div>
 
+    <!-- 詳細ページ -->
     <div id="dynamic-detail-page" class="page">
         <button class="back-btn" onclick="goBackToHome()">← もどる</button>
         <div class="detail-header">
@@ -687,7 +768,7 @@
                 id: 1,
                 title: "甘辛しみしみ☆大根のべっこう煮",
                 servings: "4人分",
-                tag: "和風副菜",
+                tag: "副菜",
                 desc: "べっこう色の甘辛味♪しっかり味のしみた大根です。",
                 imgSrc: null,
                 ingredients: [
@@ -709,7 +790,7 @@
                 id: 2,
                 title: "丸ごとチキンと野菜のオーブン焼き",
                 servings: "2人分",
-                tag: "ごちそうメイン",
+                tag: "お肉料理",
                 desc: "ローズマリー香るジューシーチキン！焼くだけ簡単。",
                 imgSrc: null,
                 ingredients: [
@@ -724,42 +805,40 @@
             },
             {
                 id: 3,
-                title: "本場の味！宮崎風 チキン南蛮",
-                servings: "4人分",
-                tag: "郷土料理",
-                desc: "甘酢と手作りタルタルソースでいただく絶品チキン。",
+                title: "鮭ときのこのガーリックバター",
+                servings: "2人分",
+                tag: "魚料理",
+                desc: "バターとニンニクの香りが食欲そそる一品。",
                 imgSrc: null,
                 ingredients: [
-                    { name: "鶏胸肉", amount: "600g" },
-                    { name: "卵（衣用）", amount: "3個" }
+                    { name: "生鮭", amount: "2切れ" },
+                    { name: "しめじ", amount: "1パック" }
                 ],
                 steps: [
-                    "鶏肉に衣をつけて揚げる。"
+                    "鮭に塩コショウを振る。",
+                    "フライパンで焼く。"
                 ]
             }
         ];
 
         let recipes = JSON.parse(localStorage.getItem('my_recipes')) || defaultRecipes;
         let currentDetailId = null;
+        let selectedCategory = 'すべて';
 
         window.onload = function() {
-            renderRecipeGrid(recipes);
+            filterAndRenderRecipes();
             
-            // 初回ロード時に履歴のベースを設定
             if (!history.state || history.state.page !== 'home') {
                 history.replaceState({ page: 'home' }, '', '');
             }
         };
 
-        // ブラウザの「戻る」「進む」ボタンが押されたときの処理
         window.addEventListener('popstate', (event) => {
             if (event.state && event.state.page === 'detail') {
-                // 履歴の状態がdetailなら詳細を表示
                 if (event.state.recipeId) {
                     showDetail(event.state.recipeId, false);
                 }
             } else {
-                //それ以外（ホームに戻る場合）
                 showHome(false);
             }
         });
@@ -771,6 +850,9 @@
         function togglePostBox() {
             const postBox = document.getElementById('post-box');
             postBox.classList.toggle('open');
+            if (postBox.classList.contains('open')) {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
         }
 
         function toggleBulkBox() {
@@ -778,7 +860,6 @@
             bulkBox.classList.toggle('open');
         }
 
-        // ホーム画面を表示する（pushHistory=trueの時は新しく履歴を追加）
         function showHome(pushHistory = true) {
             if (pushHistory) {
                 history.pushState({ page: 'home' }, '', '');
@@ -789,13 +870,62 @@
 
             document.getElementById('home-page').classList.add('active');
             window.scrollTo(0, 0);
-            document.getElementById('search-input').value = '';
-            renderRecipeGrid(recipes);
+            filterAndRenderRecipes();
         }
 
-        // 「もどる」ボタンが押されたときの処理
         function goBackToHome() {
-            history.back(); // ブラウザの履歴を一つ戻す（popstateが発火して自動でhomeに戻ります）
+            history.back();
+        }
+
+        function setCategoryFilter(category, btnElement) {
+            selectedCategory = category;
+            
+            const buttons = document.querySelectorAll('.cat-filter-btn');
+            buttons.forEach(b => b.classList.remove('active'));
+            btnElement.classList.add('active');
+
+            filterAndRenderRecipes();
+        }
+
+        // 検索ボックス入力時の処理（リアルタイム検索 ＋ バツボタンの表示切り替え）
+        function handleSearchInput() {
+            const input = document.getElementById('search-input');
+            const clearBtn = document.getElementById('clear-search-btn');
+
+            if (input.value.length > 0) {
+                clearBtn.classList.add('show');
+            } else {
+                clearBtn.classList.remove('show');
+            }
+
+            filterAndRenderRecipes();
+        }
+
+        // バツボタンタップで入力内容をクリア
+        function clearSearchInput() {
+            const input = document.getElementById('search-input');
+            input.value = '';
+            document.getElementById('clear-search-btn').classList.remove('show');
+            filterAndRenderRecipes();
+            input.focus();
+        }
+
+        function filterAndRenderRecipes() {
+            const keyword = document.getElementById('search-input').value.toLowerCase();
+            
+            const filtered = recipes.filter(r => {
+                const matchCategory = (selectedCategory === 'すべて') || (r.tag && r.tag.trim() === selectedCategory);
+                
+                const matchTitle = r.title.toLowerCase().includes(keyword);
+                const matchDesc = r.desc.toLowerCase().includes(keyword);
+                const matchTag = r.tag.toLowerCase().includes(keyword);
+                const matchIng = r.ingredients.some(i => i.name.toLowerCase().includes(keyword));
+                const matchKeyword = matchTitle || matchDesc || matchTag || matchIng;
+
+                return matchCategory && matchKeyword;
+            });
+
+            renderRecipeGrid(filtered);
         }
 
         function updateFileName(input) {
@@ -976,7 +1106,7 @@
                 }
 
                 saveToStorage();
-                renderRecipeGrid(recipes);
+                filterAndRenderRecipes();
                 resetForm();
                 document.getElementById('post-box').classList.remove('open');
                 alert('✨ レシピを保存しました！');
@@ -1007,7 +1137,7 @@
             document.getElementById('file-name-display').innerText = '選択されていません';
             document.getElementById('edit-index').value = '';
             
-            document.getElementById('form-box-title-text').innerText = '✨ 新しいレシピをメモする';
+            document.getElementById('form-main-heading').innerText = '新しいレシピを追加';
             document.getElementById('submit-btn').innerText = 'リストに追加する';
             document.getElementById('cancel-edit-btn').style.display = 'none';
 
@@ -1029,7 +1159,7 @@
             grid.innerHTML = '';
 
             if (list.length === 0) {
-                grid.innerHTML = '<p style="text-align:center; color:#8c7a6b; padding:20px;">レシピがありません</p>';
+                grid.innerHTML = '<p style="text-align:center; color:#8c7a6b; padding:20px;">該当するレシピがありません</p>';
                 return;
             }
 
@@ -1046,28 +1176,14 @@
                 card.innerHTML = `
                     ${imgHtml}
                     <div class="card-content">
-                        <span class="card-tag">${recipe.tag}</span>
+                        <span class="card-tag">${recipe.tag || 'お気に入り'}</span>
                         <h2 class="card-title">${recipe.title}</h2>
-                        <p class="card-desc">${recipe.desc}</p>
                     </div>
                 `;
                 grid.appendChild(card);
             });
         }
 
-        function filterRecipes() {
-            const keyword = document.getElementById('search-input').value.toLowerCase();
-            const filtered = recipes.filter(r => {
-                const matchTitle = r.title.toLowerCase().includes(keyword);
-                const matchDesc = r.desc.toLowerCase().includes(keyword);
-                const matchTag = r.tag.toLowerCase().includes(keyword);
-                const matchIng = r.ingredients.some(i => i.name.toLowerCase().includes(keyword));
-                return matchTitle || matchDesc || matchTag || matchIng;
-            });
-            renderRecipeGrid(filtered);
-        }
-
-        // 詳細画面を表示する（pushHistory=trueの時は新しく履歴を追加）
         function showDetail(recipeId, pushHistory = true) {
             if (pushHistory) {
                 history.pushState({ page: 'detail', recipeId: recipeId }, '', '');
@@ -1078,7 +1194,7 @@
             if (!recipe) return;
 
             document.getElementById('dyn-title').innerText = recipe.title;
-            document.getElementById('dyn-tag').innerText = recipe.tag;
+            document.getElementById('dyn-tag').innerText = recipe.tag || 'お気に入り';
             document.getElementById('dyn-desc').innerText = recipe.desc;
 
             const dynIngHeading = document.getElementById('dyn-ingredients-heading');
@@ -1165,7 +1281,7 @@
                 addStepRow();
             }
 
-            document.getElementById('form-box-title-text').innerText = '✏️ レシピを編集する';
+            document.getElementById('form-main-heading').innerText = 'レシピを編集';
             document.getElementById('submit-btn').innerText = '変更を保存する';
             document.getElementById('cancel-edit-btn').style.display = 'block';
 
