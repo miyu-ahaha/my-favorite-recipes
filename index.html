@@ -779,7 +779,7 @@
 
         <div class="detail-actions">
             <button class="action-edit-btn" id="dyn-edit-btn">✏️ このレシピを編集する</button>
-            <button class="action-delete-btn" id="dyn-delete-btn">🗑️ このレシピを削除する</button>
+            <button class="action-delete-btn" id="dyn-delete-btn" onclick="deleteCurrentRecipe()">🗑️ このレシピを削除する</button>
         </div>
     </div>
 
@@ -789,7 +789,6 @@
         // ==========================================
         const JSONBIN_MASTER_KEY = "$2a$10$06NXGmHf6mVSNKe.raYSMuTHImq0NuLkVILheGiRAvaB.vB7gE0KG"; 
         
-        // 初めて使うときに自動作成される専用のストレージID（2回目以降は自動で記憶されます）
         let JSONBIN_BIN_ID = localStorage.getItem('my_recipe_bin_id') || "";
 
         const defaultRecipes = [
@@ -874,7 +873,6 @@
             overlay.classList.remove('hidden');
         }
 
-        // クラウドからレシピデータを取得する
         async function loadRecipesFromCloud() {
             try {
                 if (!JSONBIN_BIN_ID) {
@@ -883,9 +881,13 @@
                     const res = await fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}/latest`, {
                         headers: { 'X-Master-Key': JSONBIN_MASTER_KEY }
                     });
-                    if (!res.ok) throw new Error('データ取得失敗');
+                    if (!res.ok) {
+                        // 万が一Binが消えている等のエラーの場合は新しく作り直す
+                        await createNewBinInCloud(defaultRecipes);
+                        return;
+                    }
                     const data = await res.json();
-                    recipes = data.record.recipes || defaultRecipes;
+                    recipes = (data.record && data.record.recipes) ? data.record.recipes : defaultRecipes;
                 }
             } catch (err) {
                 console.error(err);
@@ -893,7 +895,6 @@
             }
         }
 
-        // クラウドに新規Binを作る関数（初回のみ自動実行）
         async function createNewBinInCloud(initialData) {
             try {
                 const res = await fetch('https://api.jsonbin.io/v3/b', {
@@ -906,8 +907,10 @@
                     body: JSON.stringify({ recipes: initialData })
                 });
                 const data = await res.json();
-                JSONBIN_BIN_ID = data.metadata.id;
-                localStorage.setItem('my_recipe_bin_id', JSONBIN_BIN_ID);
+                if (data && data.metadata && data.metadata.id) {
+                    JSONBIN_BIN_ID = data.metadata.id;
+                    localStorage.setItem('my_recipe_bin_id', JSONBIN_BIN_ID);
+                }
                 recipes = initialData;
             } catch (err) {
                 console.error(err);
@@ -915,9 +918,11 @@
             }
         }
 
-        // クラウドへデータを保存（更新）する関数
         async function saveToCloud() {
-            if (!JSONBIN_BIN_ID) return;
+            if (!JSONBIN_BIN_ID) {
+                await createNewBinInCloud(recipes);
+                return;
+            }
             try {
                 const res = await fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}`, {
                     method: 'PUT',
@@ -927,7 +932,10 @@
                     },
                     body: JSON.stringify({ recipes: recipes })
                 });
-                if (!res.ok) throw new Error('保存失敗');
+                if (!res.ok) {
+                    // うまく更新できない場合は新規作成を試みる
+                    await createNewBinInCloud(recipes);
+                }
             } catch (err) {
                 console.error(err);
                 alert('クラウドへの保存に失敗しました。ネット接続を確認してください。');
@@ -1191,7 +1199,7 @@
                 filterAndRenderRecipes();
                 resetForm();
                 document.getElementById('post-box').classList.remove('open');
-                alert('✨ レシピをクラウドに保存しました！家族の画面にも反映されます。');
+                alert('✨ レシピをクラウドに保存しました！');
             };
 
             const file = imageInput.files[0];
@@ -1315,7 +1323,6 @@
             }
 
             document.getElementById('dyn-edit-btn').onclick = function() { startEdit(recipe.id); };
-            document.getElementById('dyn-delete-btn').onclick = function() { deleteRecipe(recipe.id); };
 
             const pages = document.querySelectorAll('.page');
             pages.forEach(page => page.classList.remove('active'));
@@ -1323,10 +1330,11 @@
             window.scrollTo(0, 0);
         }
 
-        async function deleteRecipe(recipeId) {
+        async function deleteCurrentRecipe() {
+            if (!currentDetailId) return;
             if (confirm('本当にこのレシピを削除しますか？')) {
                 showLoading("削除を反映中...");
-                recipes = recipes.filter(r => r.id != recipeId);
+                recipes = recipes.filter(r => r.id != currentDetailId);
                 await saveToCloud();
                 hideLoading();
                 showHome(true);
