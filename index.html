@@ -37,6 +37,39 @@
             padding: 16px 0 16px;
         }
 
+        /* 読込中のクルクル表示 */
+        .loading-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(250, 247, 242, 0.8);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            font-size: 0.95rem;
+            color: #b07d62;
+            font-weight: 700;
+            gap: 10px;
+            transition: opacity 0.3s ease;
+        }
+        .loading-overlay.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #e3d5ca;
+            border-top: 4px solid #b07d62;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
         /* 右上の「＋」追加ボタン */
         .header-add-btn {
             position: absolute;
@@ -70,11 +103,10 @@
             color: #b07d62;
             margin-bottom: 4px;
             letter-spacing: 0.5px;
-            padding-right: 40px; /* ＋ボタンと重ならないため */
+            padding-right: 40px;
             padding-left: 40px;
         }
 
-        /* サブタイトル */
         .site-subtitle {
             font-size: 0.85rem;
             color: #8c7a6b;
@@ -84,7 +116,6 @@
             padding-left: 40px;
         }
 
-        /* 検索ボックス周り */
         .search-box {
             position: relative;
             max-width: 100%;
@@ -95,7 +126,7 @@
 
         .search-input {
             width: 100%;
-            padding: 12px 45px 12px 20px; /* 右側のバツボタンと重ならないよう余白調整 */
+            padding: 12px 45px 12px 20px;
             background-color: #fff;
             border: 1.5px solid #e3d5ca;
             border-radius: 30px;
@@ -115,7 +146,6 @@
             color: #bfa89b;
         }
 
-        /* 右側のクリア（バツ）ボタン */
         .clear-search-btn {
             position: absolute;
             right: 12px;
@@ -128,21 +158,16 @@
             font-size: 0.75rem;
             font-weight: 700;
             cursor: pointer;
-            display: none; /* 初期状態は非表示 */
+            display: none;
             align-items: center;
             justify-content: center;
             transition: background-color 0.2s;
         }
 
-        .clear-search-btn:hover {
-            background-color: #d4c2b4;
-        }
-
         .clear-search-btn.show {
-            display: flex; /* 入力がある時に表示 */
+            display: flex;
         }
 
-        /* カテゴリーフィルター（文字リンク） */
         .category-filter-scroll {
             display: flex;
             gap: 8px;
@@ -173,7 +198,6 @@
             border-color: #b07d62;
         }
 
-        /* レシピ追加アコーディオン（＋ボタンで開閉） */
         .post-box {
             background-color: #ffffff;
             border-radius: 16px;
@@ -399,7 +423,6 @@
             transform: scale(0.98);
         }
 
-        /* レシピ一覧・カードデザイン（1列） */
         .recipe-grid {
             display: flex;
             flex-direction: column;
@@ -651,21 +674,23 @@
 </head>
 <body>
 
+    <!-- 読込中オーバーレイ -->
+    <div id="loading-overlay" class="loading-overlay">
+        <div class="spinner"></div>
+        <span>レシピを読み込んでいます...</span>
+    </div>
+
     <div id="home-page" class="page active">
         <header>
-            <!-- 右上の「＋」追加ボタン -->
             <button type="button" class="header-add-btn" onclick="togglePostBox()">+</button>
             <h1 class="site-title">my favorite recipes</h1>
             <p class="site-subtitle">きょうのごはん、なににする？</p>
             
             <div class="search-box">
                 <input type="text" class="search-input" id="search-input" placeholder="料理名や材料で検索..." oninput="handleSearchInput()">
-                
-                <!-- 入力内容を一括消去するバツボタン -->
                 <button type="button" class="clear-search-btn" id="clear-search-btn" onclick="clearSearchInput()" title="クリア">✕</button>
             </div>
             
-            <!-- カテゴリーフィルター（文字リンク） -->
             <div class="category-filter-scroll" id="category-filter-container">
                 <button type="button" class="cat-filter-btn active" onclick="setCategoryFilter('すべて', this)">すべて</button>
                 <button type="button" class="cat-filter-btn" onclick="setCategoryFilter('お肉料理', this)">お肉料理</button>
@@ -679,7 +704,6 @@
             </div>
         </header>
 
-        <!-- レシピ追加フォーム（＋ボタンで開閉） -->
         <div class="post-box" id="post-box">
             <div class="post-form">
                 <input type="hidden" id="edit-index" value="">
@@ -691,9 +715,7 @@
                     </div>
                     <div class="bulk-paste-content">
                         <textarea class="post-textarea" id="bulk-input" placeholder="ここにレシピの文章を丸ごと貼り付けて、「一発反映」を押すと自動でフォームに振り分けられます！"></textarea>
-                        
                         <a href="#" id="chatgpt-link" class="chatgpt-link-btn" target="_blank" onclick="openChatGPTWithPrompt()">💬 ChatGPTを開いてプロンプトを自動入力する</a>
-                        
                         <button type="button" class="small-action-btn" onclick="parseBulkRecipe()">✨ フォームに一発反映する</button>
                     </div>
                 </div>
@@ -736,7 +758,6 @@
         </main>
     </div>
 
-    <!-- 詳細ページ -->
     <div id="dynamic-detail-page" class="page">
         <button class="back-btn" onclick="goBackToHome()">← もどる</button>
         <div class="detail-header">
@@ -763,6 +784,14 @@
     </div>
 
     <script>
+        // ==========================================
+        //  JSONBin.io の設定（ここに鍵を入れます）
+        // ==========================================
+        const JSONBIN_MASTER_KEY = "$2a$10$06NXGmHf6mVSNKe.raYSMuTHImq0NuLkVILheGiRAvaB.vB7gE0KG"; 
+        
+        // 初めて使うときに自動作成される専用のストレージID（空欄のままでOKです。動的に自動生成されます）
+        let JSONBIN_BIN_ID = localStorage.getItem('my_recipe_bin_id') || "";
+
         const defaultRecipes = [
             {
                 id: 1,
@@ -821,17 +850,97 @@
             }
         ];
 
-        let recipes = JSON.parse(localStorage.getItem('my_recipes')) || defaultRecipes;
+        let recipes = [];
         let currentDetailId = null;
         let selectedCategory = 'すべて';
 
-        window.onload = function() {
+        window.onload = async function() {
+            if (JSONBIN_MASTER_KEY === "$2a$10$06NXGmHf6mVSNKe.raYSMuTHImq0NuLkVILheGiRAvaB.vB7gE0KG") {
+                alert("エラー：コード内の `JSONBIN_MASTER_KEY` にJSONBin.ioのMaster Keyを設定してください！");
+                hideLoading();
+                return;
+            }
+
+            await loadRecipesFromCloud();
             filterAndRenderRecipes();
+            hideLoading();
             
             if (!history.state || history.state.page !== 'home') {
                 history.replaceState({ page: 'home' }, '', '');
             }
         };
+
+        function hideLoading() {
+            document.getElementById('loading-overlay').classList.add('hidden');
+        }
+
+        function showLoading(text) {
+            const overlay = document.getElementById('loading-overlay');
+            overlay.querySelector('span').innerText = text || "読み込んでいます...";
+            overlay.classList.remove('hidden');
+        }
+
+        // クラウドからレシピデータを取得する
+        async function loadRecipesFromCloud() {
+            try {
+                if (!JSONBIN_BIN_ID) {
+                    // 初回：新規Bin（データ保管箱）を自動作成する
+                    await createNewBinInCloud(defaultRecipes);
+                } else {
+                    // 2回目以降：既存のBinからデータを取得
+                    const res = await fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}/latest`, {
+                        headers: { 'X-Master-Key': JSONBIN_MASTER_KEY }
+                    });
+                    if (!res.ok) throw new Error('データ取得失敗');
+                    const data = await res.json();
+                    recipes = data.record.recipes || defaultRecipes;
+                }
+            } catch (err) {
+                console.error(err);
+                recipes = defaultRecipes;
+            }
+        }
+
+        // クラウドに新規Binを作る関数
+        async function createNewBinInCloud(initialData) {
+            try {
+                const res = await fetch('https://api.jsonbin.io/v3/b', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Master-Key': JSONBIN_MASTER_KEY,
+                        'X-Bin-Name': 'Family_Recipes'
+                    },
+                    body: JSON.stringify({ recipes: initialData })
+                });
+                const data = await res.json();
+                JSONBIN_BIN_ID = data.metadata.id;
+                localStorage.setItem('my_recipe_bin_id', JSONBIN_BIN_ID);
+                recipes = initialData;
+            } catch (err) {
+                console.error(err);
+                recipes = initialData;
+            }
+        }
+
+        // クラウドへデータを保存（更新）する関数
+        async function saveToCloud() {
+            if (!JSONBIN_BIN_ID) return;
+            try {
+                const res = await fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Master-Key': JSONBIN_MASTER_KEY
+                    },
+                    body: JSON.stringify({ recipes: recipes })
+                });
+                if (!res.ok) throw new Error('保存失敗');
+            } catch (err) {
+                console.error(err);
+                alert('クラウドへの保存に失敗しました。ネット接続を確認してください。');
+            }
+        }
 
         window.addEventListener('popstate', (event) => {
             if (event.state && event.state.page === 'detail') {
@@ -842,10 +951,6 @@
                 showHome(false);
             }
         });
-
-        function saveToStorage() {
-            localStorage.setItem('my_recipes', JSON.stringify(recipes));
-        }
 
         function togglePostBox() {
             const postBox = document.getElementById('post-box');
@@ -864,7 +969,6 @@
             if (pushHistory) {
                 history.pushState({ page: 'home' }, '', '');
             }
-
             const pages = document.querySelectorAll('.page');
             pages.forEach(page => page.classList.remove('active'));
 
@@ -879,29 +983,23 @@
 
         function setCategoryFilter(category, btnElement) {
             selectedCategory = category;
-            
             const buttons = document.querySelectorAll('.cat-filter-btn');
             buttons.forEach(b => b.classList.remove('active'));
             btnElement.classList.add('active');
-
             filterAndRenderRecipes();
         }
 
-        // 検索ボックス入力時の処理（リアルタイム検索 ＋ バツボタンの表示切り替え）
         function handleSearchInput() {
             const input = document.getElementById('search-input');
             const clearBtn = document.getElementById('clear-search-btn');
-
             if (input.value.length > 0) {
                 clearBtn.classList.add('show');
             } else {
                 clearBtn.classList.remove('show');
             }
-
             filterAndRenderRecipes();
         }
 
-        // バツボタンタップで入力内容をクリア
         function clearSearchInput() {
             const input = document.getElementById('search-input');
             input.value = '';
@@ -912,19 +1010,14 @@
 
         function filterAndRenderRecipes() {
             const keyword = document.getElementById('search-input').value.toLowerCase();
-            
             const filtered = recipes.filter(r => {
                 const matchCategory = (selectedCategory === 'すべて') || (r.tag && r.tag.trim() === selectedCategory);
-                
                 const matchTitle = r.title.toLowerCase().includes(keyword);
                 const matchDesc = r.desc.toLowerCase().includes(keyword);
                 const matchTag = r.tag.toLowerCase().includes(keyword);
                 const matchIng = r.ingredients.some(i => i.name.toLowerCase().includes(keyword));
-                const matchKeyword = matchTitle || matchDesc || matchTag || matchIng;
-
-                return matchCategory && matchKeyword;
+                return matchCategory && (matchTitle || matchDesc || matchTag || matchIng);
             });
-
             renderRecipeGrid(filtered);
         }
 
@@ -961,20 +1054,17 @@
         }
 
         function openChatGPTWithPrompt() {
-            const promptText = `以下のレシピ（またはURL）から、私が自作しているレシピアプリへ一括貼り付けするためのテキストを作ってください。
-以下の【出力ルール】を絶対に守って出力してください。
-
+            const promptText = `以下のレシピから、私が自作しているレシピアプリへ一括貼り付けするためのテキストを作ってください。
 【出力ルール】
-1. 1行目：レシピのタイトルのみ（「タイトル：」などの文字や人数は含めない）
+1. 1行目：レシピのタイトルのみ
 2. 2行目：レシピの簡単な説明やコメント
-3. 3行目で「材料（〇人分）」の形式で書いてください（例：「材料（2人分）」のように書いてください）。
-4. 4行目以降：各材料を「材料名 分量」の形で1行ずつ書いてください（「*」や「-」などの記号は一切つけず、名前と分量の間にスペースを空けてください。☆調味料などの見出しもそのまま行として挟んでOKです）。
+3. 3行目で「材料（〇人分）」の形式で書いてください。
+4. 4行目以降：各材料を「材料名 分量」の形で1行ずつ書いてください。
 5. 作り方の手前で「作り方」とだけ1行書いてください。
-6. その後、作り方の手順を頭の数字や記号（「1.」「①」など）を一切つけず、文章のみを1行ずつ順番に出力してください。
+6. その後、作り方の手順を数字や記号なしで1行ずつ順番に出力してください。
 
 【対象のレシピ】
 ここにレシピのURL、またはコピーしたテキストを貼り付けてください`;
-
             const chatGptUrl = 'https://chatgpt.com/?q=' + encodeURIComponent(promptText);
             document.getElementById('chatgpt-link').href = chatGptUrl;
         }
@@ -985,7 +1075,6 @@
                 alert('一括貼り付け用のテキストを入力してください！');
                 return;
             }
-
             const lines = bulkText.split('\n').map(l => l.trim()).filter(l => l !== '');
             let title = '', servings = '', desc = '';
             let ingredients = [], steps = [];
@@ -993,7 +1082,6 @@
 
             for (let i = 0; i < lines.length; i++) {
                 const line = lines[i];
-
                 if (line.includes('材料') || line.includes('【材料】') || line.includes('材料：')) {
                     if (line.includes('（') || line.includes('(')) {
                         let match = line.match(/[（\(](.*?)[）\)]/);
@@ -1041,10 +1129,10 @@
 
             document.getElementById('bulk-paste-box').classList.remove('open');
             document.getElementById('bulk-input').value = '';
-            alert('✨ 人数も含めてフォームに自動入力しました！');
+            alert('✨ フォームに自動入力しました！');
         }
 
-        function saveRecipe() {
+        async function saveRecipe() {
             const titleInput = document.getElementById('new-title');
             const servingsInput = document.getElementById('new-servings');
             const tagInput = document.getElementById('new-tag');
@@ -1079,7 +1167,8 @@
 
             const editId = editIndexInput.value;
 
-            const processSave = (imgSrc) => {
+            const processSave = async (imgSrc) => {
+                showLoading("クラウドに保存中...");
                 if (editId !== "") {
                     const index = recipes.findIndex(r => r.id == editId);
                     if (index !== -1) {
@@ -1105,17 +1194,18 @@
                     recipes.unshift(newRecipe);
                 }
 
-                saveToStorage();
+                await saveToCloud();
+                hideLoading();
                 filterAndRenderRecipes();
                 resetForm();
                 document.getElementById('post-box').classList.remove('open');
-                alert('✨ レシピを保存しました！');
+                alert('✨ レシピをクラウドに保存しました！家族の画面にも反映されます。');
             };
 
             const file = imageInput.files[0];
             if (file) {
                 const reader = new FileReader();
-                reader.onload = function(e) { processSave(e.target.result); };
+                reader.onload = async function(e) { await processSave(e.target.result); };
                 reader.readAsDataURL(file);
             } else {
                 let existingImg = undefined;
@@ -1123,7 +1213,7 @@
                     const found = recipes.find(r => r.id == editId);
                     if (found) existingImg = found.imgSrc;
                 }
-                processSave(existingImg);
+                await processSave(existingImg);
             }
         }
 
@@ -1157,22 +1247,18 @@
         function renderRecipeGrid(list) {
             const grid = document.getElementById('recipe-grid');
             grid.innerHTML = '';
-
             if (list.length === 0) {
                 grid.innerHTML = '<p style="text-align:center; color:#8c7a6b; padding:20px;">該当するレシピがありません</p>';
                 return;
             }
-
             list.forEach(recipe => {
                 const card = document.createElement('div');
                 card.className = 'recipe-card';
-
                 const imgHtml = recipe.imgSrc 
                     ? `<div class="card-img-area"><img src="${recipe.imgSrc}" alt="${recipe.title}"></div>`
                     : `<div class="card-img-area">🍳</div>`;
 
                 card.onclick = function() { showDetail(recipe.id, true); };
-
                 card.innerHTML = `
                     ${imgHtml}
                     <div class="card-content">
@@ -1188,7 +1274,6 @@
             if (pushHistory) {
                 history.pushState({ page: 'detail', recipeId: recipeId }, '', '');
             }
-
             currentDetailId = recipeId;
             const recipe = recipes.find(r => r.id == recipeId);
             if (!recipe) return;
@@ -1246,10 +1331,12 @@
             window.scrollTo(0, 0);
         }
 
-        function deleteRecipe(recipeId) {
+        async function deleteRecipe(recipeId) {
             if (confirm('本当にこのレシピを削除しますか？')) {
+                showLoading("削除を反映中...");
                 recipes = recipes.filter(r => r.id != recipeId);
-                saveToStorage();
+                await saveToCloud();
+                hideLoading();
                 showHome(true);
                 alert('🗑️ レシピを削除しました。');
             }
