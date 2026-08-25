@@ -542,7 +542,6 @@
             color: #5c4c3e;
         }
 
-        /* 編集・削除ボタン用エリア */
         .detail-actions {
             display: flex;
             gap: 10px;
@@ -602,10 +601,8 @@
             
             <div class="post-content-inner">
                 <div class="post-form">
-                    <!-- 編集中のID保持用隠しフィールド -->
                     <input type="hidden" id="edit-index" value="">
                     
-                    <!-- 一括貼り付け機能用アコーディオンボックス -->
                     <div class="bulk-paste-box" id="bulk-paste-box">
                         <div class="bulk-paste-header" onclick="toggleBulkBox()">
                             <span>🪄 AIなどでレシピを一括読み込みする</span>
@@ -656,13 +653,11 @@
         </div>
 
         <main class="recipe-grid" id="recipe-grid">
-            <!-- JavaScriptで動的に描画されます -->
         </main>
     </div>
 
-    <!-- 動的詳細ページ -->
     <div id="dynamic-detail-page" class="page">
-        <button class="back-btn" onclick="showHome()">← もどる</button>
+        <button class="back-btn" onclick="goBackToHome()">← もどる</button>
         <div class="detail-header">
             <div class="detail-img-area" id="dyn-img-container">🍳</div>
             <div class="detail-title-area">
@@ -680,7 +675,6 @@
             <ol class="steps-list" id="dyn-steps-list"></ol>
         </div>
 
-        <!-- 編集・削除ボタン -->
         <div class="detail-actions">
             <button class="action-edit-btn" id="dyn-edit-btn">✏️ このレシピを編集する</button>
             <button class="action-delete-btn" id="dyn-delete-btn">🗑️ このレシピを削除する</button>
@@ -688,7 +682,6 @@
     </div>
 
     <script>
-        // 初期サンプルデータ（まだ何も保存されていない時用）
         const defaultRecipes = [
             {
                 id: 1,
@@ -746,14 +739,30 @@
             }
         ];
 
-        // ローカルストレージからレシピデータを読み込む（なければデフォルト）
         let recipes = JSON.parse(localStorage.getItem('my_recipes')) || defaultRecipes;
         let currentDetailId = null;
 
-        // ページ読み込み時にリストを表示
         window.onload = function() {
             renderRecipeGrid(recipes);
+            
+            // 初回ロード時に履歴のベースを設定
+            if (!history.state || history.state.page !== 'home') {
+                history.replaceState({ page: 'home' }, '', '');
+            }
         };
+
+        // ブラウザの「戻る」「進む」ボタンが押されたときの処理
+        window.addEventListener('popstate', (event) => {
+            if (event.state && event.state.page === 'detail') {
+                // 履歴の状態がdetailなら詳細を表示
+                if (event.state.recipeId) {
+                    showDetail(event.state.recipeId, false);
+                }
+            } else {
+                //それ以外（ホームに戻る場合）
+                showHome(false);
+            }
+        });
 
         function saveToStorage() {
             localStorage.setItem('my_recipes', JSON.stringify(recipes));
@@ -769,7 +778,12 @@
             bulkBox.classList.toggle('open');
         }
 
-        function showHome() {
+        // ホーム画面を表示する（pushHistory=trueの時は新しく履歴を追加）
+        function showHome(pushHistory = true) {
+            if (pushHistory) {
+                history.pushState({ page: 'home' }, '', '');
+            }
+
             const pages = document.querySelectorAll('.page');
             pages.forEach(page => page.classList.remove('active'));
 
@@ -777,6 +791,11 @@
             window.scrollTo(0, 0);
             document.getElementById('search-input').value = '';
             renderRecipeGrid(recipes);
+        }
+
+        // 「もどる」ボタンが押されたときの処理
+        function goBackToHome() {
+            history.back(); // ブラウザの履歴を一つ戻す（popstateが発火して自動でhomeに戻ります）
         }
 
         function updateFileName(input) {
@@ -811,7 +830,6 @@
             container.appendChild(row);
         }
 
-        // --- ChatGPTプロンプト自動セット ---
         function openChatGPTWithPrompt() {
             const promptText = `以下のレシピ（またはURL）から、私が自作しているレシピアプリへ一括貼り付けするためのテキストを作ってください。
 以下の【出力ルール】を絶対に守って出力してください。
@@ -831,7 +849,6 @@
             document.getElementById('chatgpt-link').href = chatGptUrl;
         }
 
-        // --- 一括貼り付け解析 ---
         function parseBulkRecipe() {
             const bulkText = document.getElementById('bulk-input').value.trim();
             if (!bulkText) {
@@ -897,7 +914,6 @@
             alert('✨ 人数も含めてフォームに自動入力しました！');
         }
 
-        // --- レシピの保存（新規追加 ＆ 編集保存） ---
         function saveRecipe() {
             const titleInput = document.getElementById('new-title');
             const servingsInput = document.getElementById('new-servings');
@@ -935,7 +951,6 @@
 
             const processSave = (imgSrc) => {
                 if (editId !== "") {
-                    // 編集の場合
                     const index = recipes.findIndex(r => r.id == editId);
                     if (index !== -1) {
                         recipes[index].title = title;
@@ -947,7 +962,6 @@
                         recipes[index].steps = stepsData;
                     }
                 } else {
-                    // 新規追加の場合
                     const newRecipe = {
                         id: Date.now(),
                         title: title,
@@ -974,7 +988,6 @@
                 reader.onload = function(e) { processSave(e.target.result); };
                 reader.readAsDataURL(file);
             } else {
-                // 編集時で画像を変更していない場合は既存の画像を維持する
                 let existingImg = undefined;
                 if (editId !== "") {
                     const found = recipes.find(r => r.id == editId);
@@ -984,7 +997,6 @@
             }
         }
 
-        // --- フォームのリセット ---
         function resetForm() {
             document.getElementById('new-title').value = '';
             document.getElementById('new-servings').value = '';
@@ -1012,7 +1024,6 @@
             `;
         }
 
-        // --- レシピ一覧の描画 ---
         function renderRecipeGrid(list) {
             const grid = document.getElementById('recipe-grid');
             grid.innerHTML = '';
@@ -1030,7 +1041,7 @@
                     ? `<div class="card-img-area"><img src="${recipe.imgSrc}" alt="${recipe.title}"></div>`
                     : `<div class="card-img-area">🍳</div>`;
 
-                card.onclick = function() { showDetail(recipe.id); };
+                card.onclick = function() { showDetail(recipe.id, true); };
 
                 card.innerHTML = `
                     ${imgHtml}
@@ -1044,7 +1055,6 @@
             });
         }
 
-        // --- 検索機能 ---
         function filterRecipes() {
             const keyword = document.getElementById('search-input').value.toLowerCase();
             const filtered = recipes.filter(r => {
@@ -1057,8 +1067,12 @@
             renderRecipeGrid(filtered);
         }
 
-        // --- 詳細画面の表示 ---
-        function showDetail(recipeId) {
+        // 詳細画面を表示する（pushHistory=trueの時は新しく履歴を追加）
+        function showDetail(recipeId, pushHistory = true) {
+            if (pushHistory) {
+                history.pushState({ page: 'detail', recipeId: recipeId }, '', '');
+            }
+
             currentDetailId = recipeId;
             const recipe = recipes.find(r => r.id == recipeId);
             if (!recipe) return;
@@ -1107,7 +1121,6 @@
                 stepListElem.innerHTML = `<li class="step-item"><span class="step-number">1</span><span class="step-text">メモ特になし</span></li>`;
             }
 
-            // 編集・削除ボタンのイベント設定
             document.getElementById('dyn-edit-btn').onclick = function() { startEdit(recipe.id); };
             document.getElementById('dyn-delete-btn').onclick = function() { deleteRecipe(recipe.id); };
 
@@ -1117,29 +1130,25 @@
             window.scrollTo(0, 0);
         }
 
-        // --- 削除機能 ---
         function deleteRecipe(recipeId) {
             if (confirm('本当にこのレシピを削除しますか？')) {
                 recipes = recipes.filter(r => r.id != recipeId);
                 saveToStorage();
-                showHome();
+                showHome(true);
                 alert('🗑️ レシピを削除しました。');
             }
         }
 
-        // --- 編集機能の開始 ---
         function startEdit(recipeId) {
             const recipe = recipes.find(r => r.id == recipeId);
             if (!recipe) return;
 
-            // フォームに既存データをセット
             document.getElementById('edit-index').value = recipe.id;
             document.getElementById('new-title').value = recipe.title;
             document.getElementById('new-servings').value = recipe.servings || '';
             document.getElementById('new-tag').value = recipe.tag || '';
             document.getElementById('new-desc').value = recipe.desc || '';
 
-            // 材料のセット
             const ingContainer = document.getElementById('ingredients-container');
             ingContainer.innerHTML = '';
             if (recipe.ingredients && recipe.ingredients.length > 0) {
@@ -1148,7 +1157,6 @@
                 addIngredientRow();
             }
 
-            // 手順のセット
             const stepContainer = document.getElementById('steps-container');
             stepContainer.innerHTML = '';
             if (recipe.steps && recipe.steps.length > 0) {
@@ -1157,13 +1165,11 @@
                 addStepRow();
             }
 
-            // フォームの見た目を編集モードに変更
             document.getElementById('form-box-title-text').innerText = '✏️ レシピを編集する';
             document.getElementById('submit-btn').innerText = '変更を保存する';
             document.getElementById('cancel-edit-btn').style.display = 'block';
 
-            // ホーム画面に戻して入力フォームを開く
-            showHome();
+            showHome(true);
             document.getElementById('post-box').classList.add('open');
             window.scrollTo(0, 0);
         }
