@@ -785,11 +785,12 @@
 
     <script>
         // ==========================================
-        //  JSONBin.io の設定（マスターキー設定済み）
+        //  JSONBin.io の設定（固定Bin ID設定済み）
         // ==========================================
         const JSONBIN_MASTER_KEY = "$2a$10$06NXGmHf6mVSNKe.raYSMuTHImq0NuLkVILheGiRAvaB.vB7gE0KG"; 
         
-        let JSONBIN_BIN_ID = localStorage.getItem('my_recipe_bin_id') || "";
+        // ★あなた専用の固定Bin IDを設定しました（LINEでもSafariでも全員がこのノートを共有します）
+        const JSONBIN_BIN_ID = "682f6e52c80330e25b0f5efc"; 
 
         const defaultRecipes = [
             {
@@ -842,53 +843,22 @@
 
         async function loadRecipesFromCloud() {
             try {
-                if (!JSONBIN_BIN_ID) {
-                    await createNewBinInCloud(defaultRecipes);
-                } else {
-                    const res = await fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}/latest`, {
-                        headers: { 'X-Master-Key': JSONBIN_MASTER_KEY }
-                    });
-                    if (!res.ok) {
-                        await createNewBinInCloud(defaultRecipes);
-                        return;
-                    }
-                    const data = await res.json();
-                    recipes = (data.record && data.record.recipes) ? data.record.recipes : defaultRecipes;
+                const res = await fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}/latest`, {
+                    headers: { 'X-Master-Key': JSONBIN_MASTER_KEY }
+                });
+                if (!res.ok) {
+                    recipes = defaultRecipes;
+                    return;
                 }
+                const data = await res.json();
+                recipes = (data.record && data.record.recipes) ? data.record.recipes : defaultRecipes;
             } catch (err) {
                 console.error(err);
                 recipes = defaultRecipes;
             }
         }
 
-        async function createNewBinInCloud(initialData) {
-            try {
-                const res = await fetch('https://api.jsonbin.io/v3/b', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-Master-Key': JSONBIN_MASTER_KEY,
-                        'X-Bin-Name': 'Family_Recipes'
-                    },
-                    body: JSON.stringify({ recipes: initialData })
-                });
-                const data = await res.json();
-                if (data && data.metadata && data.metadata.id) {
-                    JSONBIN_BIN_ID = data.metadata.id;
-                    localStorage.setItem('my_recipe_bin_id', JSONBIN_BIN_ID);
-                }
-                recipes = initialData;
-            } catch (err) {
-                console.error(err);
-                recipes = initialData;
-            }
-        }
-
         async function saveToCloud() {
-            if (!JSONBIN_BIN_ID) {
-                await createNewBinInCloud(recipes);
-                return;
-            }
             try {
                 const res = await fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}`, {
                     method: 'PUT',
@@ -899,7 +869,7 @@
                     body: JSON.stringify({ recipes: recipes })
                 });
                 if (!res.ok) {
-                    await createNewBinInCloud(recipes);
+                    alert('クラウドへの保存に失敗しました。ネット接続を確認してください。');
                 }
             } catch (err) {
                 console.error(err);
@@ -1318,8 +1288,6 @@
             document.getElementById('dyn-edit-btn').onclick = function() { startEdit(recipe.id); };
 
             const pages = document.querySelectorAll('.page');
-            pages.forEach(page => page.classList.toggle('active', false)); // ensure correct active handling
-            // fix simple toggle error:
             pages.forEach(page => page.classList.remove('active'));
             document.getElementById('dynamic-detail-page').classList.add('active');
             window.scrollTo(0, 0);
@@ -1350,7 +1318,9 @@
             const ingContainer = document.getElementById('ingredients-container');
             ingContainer.innerHTML = '';
             if (recipe.ingredients && recipe.ingredients.length > 0) {
-                recipe.ingredients.forEach(i => addIngredientRow(i.name, i.amount));
+                recipe.ingredients.forEa
+
+ch(i => addIngredientRow(i.name, i.amount));
             } else {
                 addIngredientRow();
             }
