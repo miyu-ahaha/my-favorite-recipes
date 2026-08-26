@@ -376,7 +376,7 @@
             justify-content: center;
             gap: 6px;
             background-color: #fcfbfa;
-            border: 1px dashed #b07d62;
+            border: 1.5px dashed #b07d62;
             border-radius: 10px;
             padding: 10px;
             font-size: 0.85rem;
@@ -785,19 +785,42 @@
 
     <script>
         // ==========================================
-        //  JSONBin.io の設定（固定Bin ID設定済み）
+        //  ローカル保存（localStorage）方式
         // ==========================================
-        const JSONBIN_MASTER_KEY = "$2a$10$06NXGmHf6mVSNKe.raYSMuTHImq0NuLkVILheGiRAvaB.vB7gE0KG"; 
-        const JSONBIN_BIN_ID = "682f6e52c80330e25b0f5efc"; 
+        const STORAGE_KEY = 'my_favorite_recipes_data_v1';
+
+        const defaultRecipes = [
+            {
+                id: 1,
+                title: "甘辛しみしみ☆大根のべっこう煮",
+                servings: "4人分",
+                tag: "副菜",
+                desc: "べっこう色の甘辛味♪しっかり味のしみた大根です。",
+                imgSrc: null,
+                ingredients: [
+                    { name: "大根", amount: "400g" },
+                    { name: "水（A）", amount: "3カップ" },
+                    { name: "みりん（A）", amount: "大さじ2" },
+                    { name: "砂糖（A）", amount: "大さじ1" },
+                    { name: "「ほんだし®」（A）", amount: "小さじ1" },
+                    { name: "しょうゆ", amount: "大さじ1・1/2" }
+                ],
+                steps: [
+                    "大根は2cm厚さの半月切りにする。",
+                    "鍋に大根とかぶるくらいの水を入れて煮立て、20分ほど下ゆでする。",
+                    "別の鍋に大根と（A）を入れて煮立て、弱火にして落としぶたをして5分煮る。",
+                    "しょうゆを加えて30分煮て火を止め、味がしみるまでおく。"
+                ]
+            }
+        ];
 
         let recipes = [];
         let currentDetailId = null;
         let selectedCategory = 'すべて';
 
-        window.onload = async function() {
-            await loadRecipesFromCloud();
+        window.onload = function() {
+            loadRecipes();
             
-            // 履歴の状態に応じてページ復元
             if (history.state && history.state.page === 'detail' && history.state.recipeId) {
                 showDetail(history.state.recipeId, false);
             } else {
@@ -817,40 +840,31 @@
             overlay.classList.remove('hidden');
         }
 
-        async function loadRecipesFromCloud() {
+        function loadRecipes() {
             try {
-                const res = await fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}/latest`, {
-                    headers: { 'X-Master-Key': JSONBIN_MASTER_KEY },
-                    cache: 'no-cache'
-                });
-                if (!res.ok) {
-                    return;
+                const saved = localStorage.getItem(STORAGE_KEY);
+                if (saved) {
+                    const parsed = JSON.parse(saved);
+                    if (Array.isArray(parsed) && parsed.length > 0) {
+                        recipes = parsed;
+                        return;
+                    }
                 }
-                const data = await res.json();
-                if (data.record && Array.isArray(data.record.recipes)) {
-                    recipes = data.record.recipes;
-                }
+                recipes = defaultRecipes;
             } catch (err) {
                 console.error(err);
+                recipes = defaultRecipes;
             }
         }
 
-        async function saveToCloud() {
+        function saveRecipes() {
             try {
-                const res = await fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}`, {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-Master-Key': JSONBIN_MASTER_KEY
-                    },
-                    body: JSON.stringify({ recipes: recipes })
-                });
-                if (!res.ok) {
-                    alert('クラウドへの保存に失敗しました。ネット接続を確認してください。');
-                }
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(recipes));
+                return true;
             } catch (err) {
                 console.error(err);
-                alert('クラウドへの保存に失敗しました。ネット接続を確認してください。');
+                alert('保存に失敗しました（容量がいっぱい等の可能性があります）。');
+                return false;
             }
         }
 
@@ -971,7 +985,7 @@
 1. 1行目：レシピのタイトルのみ
 2. 2行目：レシピの簡単な説明やコメント
 3. 3行目で「材料（〇人分）」の形式で書いてください。
-4. 4行目以降：各材料を「材料名 分量」の形で1行ずつ書いてください。
+4. 4行目以降：各材料を "材料名 分量" の形で1行ずつ書いてください。
 5. 作り方の手前で「作り方」とだけ1行書いてください。
 6. その後、作り方の手順を数字や記号なしで1行ずつ順番に出力してください。
 
@@ -1106,8 +1120,7 @@
 
             const editId = editIndexInput.value;
 
-            const processSave = async (imgSrc) => {
-                showLoading("クラウドに保存中...");
+            const processSave = (imgSrc) => {
                 if (editId !== "") {
                     const index = recipes.findIndex(r => r.id == editId);
                     if (index !== -1) {
@@ -1133,26 +1146,28 @@
                     recipes.unshift(newRecipe);
                 }
 
-                await saveToCloud();
-                hideLoading();
-                filterAndRenderRecipes();
-                resetForm();
-                document.getElementById('post-box').classList.remove('open');
-                alert('✨ レシピと写真をクラウドに保存しました！');
+                const success = saveRecipes();
+                if (success) {
+                    filterAndRenderRecipes();
+                    resetForm();
+                    document.getElementById('post-box').classList.remove('open');
+                    alert('✨ レシピを保存しました！');
+                }
             };
 
             const file = imageInput.files[0];
             if (file) {
-                showLoading("画像を圧縮しています...");
+                showLoading("画像を処理中...");
                 const compressedDataUrl = await compressImage(file, 600, 0.7);
-                await processSave(compressedDataUrl);
+                hideLoading();
+                processSave(compressedDataUrl);
             } else {
                 let existingImg = undefined;
                 if (editId !== "") {
                     const found = recipes.find(r => r.id == editId);
                     if (found) existingImg = found.imgSrc;
                 }
-                await processSave(existingImg);
+                processSave(existingImg);
             }
         }
 
@@ -1269,15 +1284,15 @@
             window.scrollTo(0, 0);
         }
 
-        async function deleteCurrentRecipe() {
+        function deleteCurrentRecipe() {
             if (!currentDetailId) return;
             if (confirm('本当にこのレシピを削除しますか？')) {
-                showLoading("削除を反映中...");
                 recipes = recipes.filter(r => r.id != currentDetailId);
-                await saveToCloud();
-                hideLoading();
-                showHome(true);
-                alert('🗑️ レシピを削除しました。');
+                const success = saveRecipes();
+                if (success) {
+                    showHome(true);
+                    alert('🗑️ レシピを削除しました。');
+                }
             }
         }
 
